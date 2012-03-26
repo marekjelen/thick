@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+require 'optparse'
+
+require 'rubygems'
+require 'rack'
+
+$: << File.expand_path('../../lib', __FILE__)
+require 'thick'
+
+options = {}
+
+OptionParser.new do |opts|
+
+  opts.banner = 'Usage: thick [options]'
+
+  opts.separator ''
+  opts.separator 'Ruby options:'
+
+  opts.separator ''
+  opts.separator 'Rack options:'
+
+  opts.on('-o', '--host HOST', 'listen on HOST (default: 0.0.0.0)') do |host|
+    options[:address] = host
+  end
+
+  opts.on('-p', '--port PORT', 'use PORT (default: 9292)') do |port|
+    options[:port] = Integer(port)
+  end
+
+  opts.on('-E', '--env ENVIRONMENT', 'use ENVIRONMENT for defaults (default: development)') do |e|
+    options[:environment] = e
+  end
+
+end.parse!
+
+options[:address] ||= '0.0.0.0'
+options[:port] ||= 9292
+options[:environment] ||= 'development'
+
+ENV['RACK_ENV'] ||= ENV['RAILS_ENV'] ||= options[:environment]
+
+puts "Loading app #{options.inspect}"
+app = Rack::Builder.parse_file('config.ru')
+
+puts "Starting server"
+Thick.start(app[0], options)
