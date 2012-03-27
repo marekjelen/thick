@@ -52,6 +52,8 @@ module Thick
           'QUERY_STRING' => if query_string[1] && query_string[1] != '' then "?#{query_string[1]}" else '' end,
           'SERVER_NAME' => 'localhost', # ToDo: Be more precise!
           'SERVER_PORT' => '8080', # ToDo: Be more precise!
+          # Thick specific
+          'thick.async' => AsyncResponse.new(context)
       }
 
       # Get content length if available
@@ -83,7 +85,16 @@ module Thick
     def handle_request(context)
       @response = Thick::Java::DefaultHttpResponse.new(Thick::Java::HttpVersion::HTTP_1_1, Thick::Java::HttpResponseStatus::OK)
 
-      status, headers, content = @application.call(@env)
+      response = @application.call(@env)
+
+      # Let the application make the response as it wants
+      if @env['thick.async'].custom?
+        @env['thick.async'].ready!
+        return
+      end
+
+      # Unpack response
+      status, headers, content = response
 
       # Set response status as requested by application
       @response.status = Thick::Java::HttpResponseStatus.value_of(status.to_i)
@@ -105,12 +116,23 @@ module Thick
           end
       end
 
+      # When content is closable, close it
       content.close if content.respond_to?(:close)
 
-      context.channel.write(Thick::Java::ChannelBuffers::EMPTY_BUFFER).addListener(Thick::Java::ChannelFutureListener::CLOSE)
+      # Trigger async handler and marker if async response requested, close connection otherwise
+      if @env['thick.async'].async?
+        @env['thick.async'].ready!
+      else
+        @env['thick.async'].close
+      end
     end
 
     def channelClosed(context, event)
+    end
+
+    def exceptionCaught(context, e)
+      puts e.message
+      puts e.backtrace
     end
 
   end
