@@ -1,5 +1,6 @@
 ## 0.4 (xy.xz.2012)
 
+* make gem Java specific
 
 ## 0.3 (26.3.2012)
 

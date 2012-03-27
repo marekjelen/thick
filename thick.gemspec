@@ -7,6 +7,7 @@ Gem::Specification.new do |s|
 
   s.name        = "thick"
   s.version     = Thick::VERSION
+  s.platform    = "java"
   s.authors     = ["Marek Jelen"]
   s.email       = ["marek@jelen.biz"]
   s.homepage    = "http://github.com/marekjelen/thick"
