@@ -10,5 +10,5 @@ end
 
 desc "Install the gem locally"
 task :install => :build do
-  puts `gem install thick-#{Thick::VERSION}.gem`
+  puts `gem install thick-#{Thick::VERSION}-java.gem`
 end
