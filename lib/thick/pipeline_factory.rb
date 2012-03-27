@@ -17,8 +17,6 @@ module Thick
 
       pipeline.add_last('decompressor', Thick::Java::HttpContentDecompressor.new)
 
-      pipeline.add_last('chunked_writer', Thick::Java::ChunkedWriteHandler.new)
-
       pipeline.add_last('executor', @executor)
 
       pipeline.add_last('handler', ServerHandler.new(@application))
