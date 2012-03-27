@@ -5,6 +5,8 @@ module Thick
     java_import 'java.net.InetSocketAddress'
     java_import 'java.util.concurrent.Executors'
     java_import 'org.jboss.netty.bootstrap.ServerBootstrap'
+    java_import 'org.jboss.netty.buffer.ChannelBuffer'
+    java_import 'org.jboss.netty.buffer.ChannelBufferInputStream'
     java_import 'org.jboss.netty.buffer.ChannelBuffers'
     java_import 'org.jboss.netty.handler.codec.http.DefaultHttpResponse'
     java_import 'org.jboss.netty.handler.codec.http.HttpContentDecompressor'

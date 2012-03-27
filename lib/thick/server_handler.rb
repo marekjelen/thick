@@ -40,7 +40,7 @@ module Thick
           # Rack specific
           'rack.version' => [1,1],
           'rack.url_scheme' => 'http', # ToDo: support https?
-          'rack.input' => StringIO.new, # ToDo: more creativity, please!
+          'rack.input' => Buffer.new,
           'rack.errors' => $stdout, # ToDo: Sure about that?
           'rack.multithread' => true,
           'rack.multiprocess' => false,
@@ -66,7 +66,7 @@ module Thick
       end
 
       # Write request content into prepared IO
-      @env['rack.input'].write(request.content.to_string(Thick::Java::CharsetUtil::UTF_8))
+      @env['rack.input'].write(request.content)
 
       # No chunks expected, handle request
       handle_request(context) unless request.chunked?
@@ -74,7 +74,7 @@ module Thick
 
     def on_chunk(context, chunk)
       # Write request content into prepared IO
-      @env['rack.input'].write(chunk.content.to_string(Thick::Java::CharsetUtil::UTF_8))
+      @env['rack.input'].write(chunk.content)
 
       # No more chunks expected, handle request
       handle_request(context) if chunk.last?
