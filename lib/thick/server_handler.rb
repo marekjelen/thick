@@ -83,8 +83,6 @@ module Thick
     end
 
     def handle_request(context)
-      @response = Thick::Java::DefaultHttpResponse.new(Thick::Java::HttpVersion::HTTP_1_1, Thick::Java::HttpResponseStatus::OK)
-
       response = @application.call(@env)
 
       # Let the application make the response as it wants
@@ -96,8 +94,8 @@ module Thick
       # Unpack response
       status, headers, content = response
 
-      # Set response status as requested by application
-      @response.status = Thick::Java::HttpResponseStatus.value_of(status.to_i)
+      # Create response and set status as requested by application
+      @response = Thick::Java::DefaultHttpResponse.new(Thick::Java::HttpVersion::HTTP_1_1, Thick::Java::HttpResponseStatus.value_of(status.to_i))
 
       # Set headers as requested by application
       headers.each do |name, value|
@@ -131,8 +129,8 @@ module Thick
     end
 
     def exceptionCaught(context, e)
-      puts e.message
-      puts e.backtrace
+      puts e.message if e.respond_to?(:message)
+      puts e.backtrace if e.respond_to?(:backtrace)
     end
 
   end
