@@ -32,6 +32,7 @@ module Thick
     java_import 'org.jboss.netty.channel.Channels'
     java_import 'org.jboss.netty.channel.SimpleChannelUpstreamHandler'
     java_import 'org.jboss.netty.channel.ChannelUpstreamHandler'
+    java_import 'org.jboss.netty.channel.ChannelDownstreamHandler'
     java_import 'org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory'
     java_import 'org.jboss.netty.logging.InternalLogLevel'
     java_import 'org.jboss.netty.util.CharsetUtil'

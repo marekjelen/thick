@@ -63,7 +63,7 @@ module Thick
       # Extract headers and normalize it's names
       request.header_names.each do |name|
         rack_name = name.gsub('-', '_').upcase
-        rack_name = "HTTP_#{rack_name}" unless ['CONTENT_TYPE', 'CONTENT_LENGTH'].include?(rack_name)
+        rack_name = "HTTP_#{rack_name}" unless %w(CONTENT_TYPE CONTENT_LENGTH).include?(rack_name)
         @env[rack_name] = request.get_header(name)
       end
 

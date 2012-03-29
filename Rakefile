@@ -12,3 +12,8 @@ desc "Install the gem locally"
 task :install => :build do
   puts `gem install thick-#{Thick::VERSION}-java.gem`
 end
+
+desc "Release the gem"
+task :release => :build do
+  puts `gem push thick-#{Thick::VERSION}-java.gem`
+end
