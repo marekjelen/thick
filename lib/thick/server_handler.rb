@@ -99,6 +99,7 @@ module Thick
 
       # Set headers as requested by application
       headers.each do |name, value|
+        next if name == 'Content-Length' && value.to_s == '0' && @env['thick.async'].async?
         Thick::Java::HttpHeaders.set_header(@response, name, value)
       end
 
