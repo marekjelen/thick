@@ -1,4 +1,6 @@
-## 0.4 (xy.xz.2012)
+## 0.5 (xx.y.2012)
+
+## 0.4 (29.3.2012)
 
 * make gem Java specific
 * copy-less request body container

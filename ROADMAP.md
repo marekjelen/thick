@@ -3,8 +3,7 @@
 * SSL support
 * Tests
 * Code refactorings
-* Optimalizations
-* Replace StringIO
+* Optimizations
 
 ## Nice to have
 
