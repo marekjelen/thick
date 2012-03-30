@@ -99,8 +99,16 @@ module Thick
 
       # Set headers as requested by application
       headers.each do |name, value|
-        next if name == 'Content-Length' && value.to_s == '0' && @env['thick.async'].async?
         Thick::Java::HttpHeaders.set_header(@response, name, value)
+      end
+
+      if @env['thick.async'].async?
+        if length = @env['thick.async'].content_length
+          Thick::Java::HttpHeaders.set_content_length(@response, length)
+        else
+          @response.remove_header('Content-Length')
+        end
+        @response.chunked = true if @env['thick.async'].chunked?
       end
 
       context.channel.write(@response)
@@ -127,6 +135,7 @@ module Thick
     end
 
     def channelClosed(context, event)
+      @env['thick.async'].closed!
     end
 
     def exceptionCaught(context, e)

@@ -8,6 +8,7 @@ module Thick
     java_import 'org.jboss.netty.buffer.ChannelBuffer'
     java_import 'org.jboss.netty.buffer.ChannelBufferInputStream'
     java_import 'org.jboss.netty.buffer.ChannelBuffers'
+    java_import 'org.jboss.netty.handler.codec.http.DefaultHttpChunk'
     java_import 'org.jboss.netty.handler.codec.http.DefaultHttpResponse'
     java_import 'org.jboss.netty.handler.codec.http.HttpContentDecompressor'
     java_import 'org.jboss.netty.handler.codec.http.HttpHeaders'
