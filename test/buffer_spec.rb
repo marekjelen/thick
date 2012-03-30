@@ -17,7 +17,7 @@ describe Thick::Buffer do
     end
 
     it 'fails when string is being written into buffer' do
-      proc { @buffer.write('test') }.must_raise(ArgumentError)
+      expect { @buffer.write('test') }.to raise_error(ArgumentError)
     end
 
   end
@@ -26,8 +26,8 @@ describe Thick::Buffer do
 
     it 'reads data' do
       @buffer.write(buffer_from_string("some random\n data"))
-      @buffer.read.must_equal("some random\n data")
-      @buffer.read.must_equal('')
+      @buffer.read.should == "some random\n data"
+      @buffer.read.should == ('')
     end
 
     it 'reads data by chunks' do
@@ -35,12 +35,12 @@ describe Thick::Buffer do
       @buffer.write(buffer_from_string("\n"))
       @buffer.write(buffer_from_string('data'))
 
-      @buffer.read(4).must_equal('some')
-      @buffer.read(1).must_equal(' ')
-      @buffer.read(4).must_equal('rand')
-      @buffer.read(3).must_equal("om\n")
-      @buffer.read(4).must_equal('data')
-      @buffer.read(4).must_equal(nil)
+      @buffer.read(4).should == ('some')
+      @buffer.read(1).should == (' ')
+      @buffer.read(4).should == ('rand')
+      @buffer.read(3).should == ("om\n")
+      @buffer.read(4).should == ('data')
+      @buffer.read(4).should == (nil)
     end
 
     it 'reads data by line' do
@@ -48,9 +48,9 @@ describe Thick::Buffer do
       @buffer.write(buffer_from_string("\n"))
       @buffer.write(buffer_from_string('data'))
 
-      @buffer.gets.must_equal("some random\n")
-      @buffer.gets.must_equal("data")
-      @buffer.gets.must_equal(nil)
+      @buffer.gets.should == ("some random\n")
+      @buffer.gets.should == ("data")
+      @buffer.gets.should == (nil)
     end
 
     it 'iterates data by line' do
@@ -60,7 +60,7 @@ describe Thick::Buffer do
       output = []
       @buffer.each { |chunk| output << chunk }
 
-      output.must_equal(input)
+      output.should == (input)
     end
 
   end
@@ -70,9 +70,9 @@ describe Thick::Buffer do
     it 'allows rewinding to the beginning' do
       @buffer.write(buffer_from_string('some random data are written'))
 
-      @buffer.read(4).must_equal('some')
+      @buffer.read(4).should == ('some')
       @buffer.rewind
-      @buffer.read(11).must_equal('some random')
+      @buffer.read(11).should == ('some random')
     end
 
   end
