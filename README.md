@@ -2,6 +2,8 @@
 
 Thick is very lightweight web server for JRuby based on excellent Netty library.
 
+[![Build Status](https://secure.travis-ci.org/marekjelen/thick.png?branch=master)](http://travis-ci.org/marekjelen/thick)
+
 ## Status
 
 Works on several Sinatra and Rails applications. No real testing, yet.
