@@ -7,7 +7,8 @@ module Thick
         :environment => 'development',
         :reloader => false,
         :controller => false,
-        :directory => Dir.getwd
+        :directory => Dir.getwd,
+        :file => 'config.ru'
     }.merge(options)
 
     puts "* Starting Thick: #{@options.inspect}"

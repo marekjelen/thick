@@ -26,6 +26,14 @@ OptionParser.new do |opts|
     options[:port] = Integer(port)
   end
 
+  opts.on('-f', '--file FILE', 'use FILE to load the application (default: config.ru)') do |file|
+    options[:file] = file
+  end
+
+  opts.on('-d', '--directory DIR', 'use DIR as default directory (default: cwd)') do |directory|
+    options[:directory] = directory
+  end
+
   opts.on('-E', '--env ENVIRONMENT', 'use ENVIRONMENT for defaults (default: development)') do |e|
     options[:environment] = e
   end
