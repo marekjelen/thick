@@ -1,12 +1,10 @@
-require 'stringio'
-
 module Thick
 
   class ServerHandler < Thick::Java::SimpleChannelUpstreamHandler
 
-    def initialize(application)
+    def initialize(options)
       super()
-      @application = application
+      @options = options
     end
 
     def channelConnected(context, event)
@@ -32,7 +30,7 @@ module Thick
     def on_request(context, request)
 
       # Serve file if exists in public directory
-      file = File.join('public', request.uri)
+      file = File.join(@options[:directory], 'public', request.uri)
       return serve_file(context, file).addListener(Thick::Java::ChannelFutureListener::CLOSE) if !request.uri.index('..') && File.exists?(file) && !File.directory?(file)
 
       query_string = request.uri.split('?', 2)
@@ -53,7 +51,8 @@ module Thick
           'SERVER_NAME' => 'localhost', # ToDo: Be more precise!
           'SERVER_PORT' => '8080', # ToDo: Be more precise!
           # Thick specific
-          'thick.async' => AsyncResponse.new(context)
+          'thick.async' => AsyncResponse.new(context),
+          'thick.options' => @options
       }
 
       # Get content length if available
@@ -83,7 +82,7 @@ module Thick
     end
 
     def handle_request(context)
-      response = @application.call(@env)
+      response = @options[:application].call(@env)
 
       # Let the application make the response as it wants
       if @env['thick.async'].custom?
