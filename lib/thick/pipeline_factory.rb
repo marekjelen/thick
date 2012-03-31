@@ -4,8 +4,8 @@ module Thick
 
     include Thick::Java::ChannelPipelineFactory
 
-    def initialize(application)
-      @application = application
+    def initialize(options)
+      @options = options
       @executor = Thick::Java::ExecutionHandler.new(Thick::Java::OrderedMemoryAwareThreadPoolExecutor.new(20, 0, 0))
     end
 
@@ -19,7 +19,7 @@ module Thick
 
       pipeline.add_last('executor', @executor)
 
-      pipeline.add_last('handler', ServerHandler.new(@application))
+      pipeline.add_last('handler', ServerHandler.new(@options))
 
       pipeline
     end
