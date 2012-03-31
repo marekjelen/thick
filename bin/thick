@@ -2,7 +2,6 @@
 require 'optparse'
 
 require 'rubygems'
-require 'rack'
 
 $: << File.expand_path('../../lib', __FILE__)
 require 'thick'
@@ -31,16 +30,14 @@ OptionParser.new do |opts|
     options[:environment] = e
   end
 
+  opts.on('-R', '--reloader', 'enables automatic reloading of application') do |e|
+    options[:reloader] = e
+  end
+
+  opts.on('-C', '--controller', 'starts controller for remote monitoring and management') do |e|
+    options[:controller] = e
+  end
+
 end.parse!
 
-options[:address] ||= '0.0.0.0'
-options[:port] ||= 9292
-options[:environment] ||= 'development'
-
-ENV['RACK_ENV'] ||= ENV['RAILS_ENV'] ||= options[:environment]
-
-puts "Loading app #{options.inspect}"
-app = Rack::Builder.parse_file('config.ru')
-
-puts "Starting server"
-Thick.start(app[0], options)
+Thick.start(options)
