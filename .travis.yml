@@ -1,4 +1,5 @@
 language: ruby
+script: rake test
 rvm:
   - jruby-18mode
   - jruby-19mode
