@@ -1,4 +1,8 @@
-## 0.5 (xx.y.2012)
+## 0.5 (30.11.2012)
+
+* update Netty to 3.5.11
+* get rid of Loader experiment
+* update Rake gem (development)
 
 ## 0.4 (29.3.2012)
 
