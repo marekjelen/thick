@@ -1,6 +1,7 @@
 package cz.marekjelen.thick;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,21 +13,25 @@ import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
-public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpRequest> {
+public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessage> {
 
     private ServerEnvironment serverEnvironment;
+    private ByteBuf inputBuffer;
+    private HashMap<String, Object> env;
 
     @Override
-    public void messageReceived(ChannelHandlerContext context, HttpRequest request) throws Exception {
-        onRequest(context, request);
+    public void messageReceived(ChannelHandlerContext context, HttpMessage message) throws Exception {
+        if(message instanceof HttpRequest){
+            onRequest(context, (HttpRequest) message);
+        }else{
+            onChunk(context, (HttpChunk) message);
+        }
     }
 
     private void onRequest(ChannelHandlerContext context, HttpRequest request) throws Exception {
 
-        DefaultHttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        DefaultHttpResponse response = new ServerResponse(context);
 
         File staticFile = new File("public", request.getUri());
 
@@ -45,14 +50,15 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpReque
             return;
         }
 
-        HashMap<String, Object> env = new HashMap<String, Object>();
+        env = new HashMap<String, Object>();
 
         String[] queryString = request.getUri().split("\\?", 2);
-        HashSet<ByteBuf> input = new HashSet<ByteBuf>();
+
+        inputBuffer = Unpooled.buffer();
+        inputBuffer.writeBytes(request.getContent());
 
         env.put("rack.version", new int[] {1,1});
         env.put("rack.url_scheme", "http"); // ToDo: add support for HTTPs
-        env.put("rack.input", input);
         env.put("rack.errors", System.err); // ToDo: where to write errors?
         env.put("rack.multithread", true);
         env.put("rack.multiprocess", false);
@@ -64,9 +70,6 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpReque
         env.put("QUERY_STRING", queryString.length == 1 ? "" : queryString[1]);
         env.put("SERVER_NAME", "localhost"); // ToDo: Be more precise!
         env.put("SERVER_PORT", "8080"); // ToDo: Be more precise!
-
-        env.put("thick.async", null);
-        env.put("thick.response", response);
 
         if(request.getHeaderNames().contains(HttpHeaders.Names.CONTENT_LENGTH)){
             long content_length = HttpHeaders.getContentLength(request);
@@ -83,11 +86,24 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpReque
             env.put(rackName, request.getHeader(headerName));
         }
 
-        String body = serverEnvironment.getApplication().call(env);
+        env.put("thick.response", response);
 
-        response.setContent(Unpooled.wrappedBuffer(body.getBytes()));
-        context.write(response).addListener(ChannelFutureListener.CLOSE);
+        if(request.getTransferEncoding().isSingle()){
+            handleRequest();
+        }
 
+    }
+
+    private void onChunk(ChannelHandlerContext context, HttpChunk chunk) {
+        inputBuffer.writeBytes(chunk.getContent());
+        if(chunk.isLast()){
+            handleRequest();
+        }
+    }
+
+    private void handleRequest() {
+        env.put("rack.input", new ByteBufInputStream(inputBuffer));
+        serverEnvironment.getApplication().call(env);
     }
 
     public void setEnvironment(ServerEnvironment env) {

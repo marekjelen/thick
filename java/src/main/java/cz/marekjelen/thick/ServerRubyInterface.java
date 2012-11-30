@@ -4,6 +4,6 @@ import java.util.HashMap;
 
 public interface ServerRubyInterface {
 
-    public String call(HashMap<String, Object> env);
+    public void call(HashMap<String, Object> env);
 
 }
