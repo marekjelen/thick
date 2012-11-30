@@ -2,7 +2,7 @@ require 'rack'
 
 require 'java'
 
-require File.expand_path('../jars/netty-3.5.2.Final.jar', __FILE__)
+require File.expand_path('../jars/netty-3.5.11.Final.jar', __FILE__)
 
 require 'thick/java'
 require 'thick/thick'
