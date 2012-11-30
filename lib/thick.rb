@@ -6,7 +6,6 @@ require File.expand_path('../jars/netty-4.0.0.Alpha7.jar', __FILE__)
 require File.expand_path('../jars/thick-0.0.1.jar', __FILE__)
 
 require 'thick/java'
-require 'thick/thick'
 require 'thick/version'
-require 'thick/async_response'
+require 'thick/thick'
 require 'thick/loader'

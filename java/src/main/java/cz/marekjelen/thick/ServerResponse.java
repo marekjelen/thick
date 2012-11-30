@@ -18,7 +18,6 @@ public class ServerResponse extends DefaultHttpResponse {
         super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         this.context = context;
         this.buffer = Unpooled.buffer();
-        setContent(buffer);
     }
 
     public void setStatus(int status){
@@ -35,21 +34,30 @@ public class ServerResponse extends DefaultHttpResponse {
         setTransferEncoding(HttpTransferEncoding.STREAMED);
     }
 
+    public boolean isChunked() {
+        return chunked;
+    }
+
     public void writeContent(String data){
         if(this.sent){
-            HttpChunk chunk = new DefaultHttpChunk(Unpooled.wrappedBuffer(data.getBytes()));
-            context.write(chunk);
+            context.write(new DefaultHttpChunk(Unpooled.wrappedBuffer(data.getBytes())));
+            context.flush();
         }else{
             buffer.writeBytes(data.getBytes());
         }
     }
 
     public ServerResponse send(){
-        ChannelFuture future = context.write(this);
-        this.sent = true;
         if(!chunked){
+            setContent(buffer);
+            ChannelFuture future = context.write(this);
             future.addListener(ChannelFutureListener.CLOSE);
+        }else{
+            context.write(this);
+            context.write(new DefaultHttpChunk(buffer));
+            context.flush();
         }
+        this.sent = true;
         return this;
     }
 

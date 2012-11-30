@@ -28,6 +28,8 @@ module Thick
 
       response.send
 
+      env['thick.async'].call(response) if response.chunked?
+
     rescue => e
       puts e.message
       puts e.backtrace
