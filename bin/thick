@@ -38,10 +38,6 @@ OptionParser.new do |opts|
     options[:environment] = e
   end
 
-  opts.on('-R', '--reloader', 'enables automatic reloading of application') do |e|
-    options[:reloader] = e
-  end
-
   opts.on('-C', '--controller', 'starts controller for remote monitoring and management') do |e|
     options[:controller] = e
   end

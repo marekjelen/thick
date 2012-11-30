@@ -5,9 +5,6 @@ module Thick
     def initialize(options)
       @options = options
       ENV['RACK_ENV'] ||= ENV['RAILS_ENV'] ||= @options[:environment]
-      if @options[:reloader]
-      else
-      end
       @application = Rack::Builder.parse_file(@options[:file])[0]
     end
 
