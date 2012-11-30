@@ -31,22 +31,12 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessa
 
     private void onRequest(ChannelHandlerContext context, HttpRequest request) throws Exception {
 
-        DefaultHttpResponse response = new ServerResponse(context);
+        ServerResponse response = new ServerResponse(context);
 
         File staticFile = new File("public", request.getUri());
 
         if(staticFile.isFile()){
-
-            HttpHeaders.setContentLength(response, staticFile.length());
-
-            MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-            response.setHeader(HttpHeaders.Names.CONTENT_TYPE, mimeTypesMap.getContentType(staticFile.getPath()));
-
-            context.write(response);
-
-            RandomAccessFile randomAccessFile = new RandomAccessFile(staticFile, "r");
-            ChunkedFile chunkedFile = new ChunkedFile(randomAccessFile, 0, staticFile.length(), 8192);
-            context.write(chunkedFile).addListener(ChannelFutureListener.CLOSE);
+            response.sendFile(staticFile);
             return;
         }
 

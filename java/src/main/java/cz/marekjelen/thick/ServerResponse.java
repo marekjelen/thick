@@ -6,6 +6,14 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedFile;
+
+import javax.activation.MimetypesFileTypeMap;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.net.URLConnection;
 
 public class ServerResponse extends DefaultHttpResponse {
 
@@ -59,6 +67,30 @@ public class ServerResponse extends DefaultHttpResponse {
         }
         this.sent = true;
         return this;
+    }
+
+    public void sendFile(String path) throws IOException {
+        sendFile(new File(path), false);
+    }
+
+    public void sendFile(File file) throws IOException {
+        sendFile(file, false);
+    }
+
+    public void sendFile(String path, boolean attachment) throws IOException {
+        sendFile(new File(path), attachment);
+    }
+
+    public void sendFile(File file, boolean attachment) throws IOException {
+        HttpHeaders.setContentLength(this, file.length());
+        if(attachment){
+            this.setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+        }
+        setHeader(HttpHeaders.Names.CONTENT_TYPE, URLConnection.getFileNameMap().getContentTypeFor(file.getName()));
+        context.write(this);
+        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+        ChunkedFile chunkedFile = new ChunkedFile(randomAccessFile, 0, file.length(), 8192);
+        context.write(chunkedFile).addListener(ChannelFutureListener.CLOSE);
     }
 
     public void close(){

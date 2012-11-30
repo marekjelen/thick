@@ -24,12 +24,13 @@ module Thick
         response.setHeader(name, value)
       end
 
-      body.each { |chunk| response.writeContent(chunk.to_s) }
-
-      response.send
-
-      env['thick.async'].call(response) if response.chunked?
-
+      if body.respond_to?(:to_path)
+        response.send_file(body.to_path)
+      else
+        body.each { |chunk| response.writeContent(chunk.to_s) }
+        response.send
+        env['thick.async'].call(response) if response.chunked?
+      end
     rescue => e
       puts e.message
       puts e.backtrace

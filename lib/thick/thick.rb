@@ -5,8 +5,6 @@ module Thick
         :address => '0.0.0.0',
         :port => 9292,
         :environment => 'development',
-        :reloader => false,
-        :controller => false,
         :directory => Dir.getwd,
         :file => 'config.ru'
     }.merge(options)
