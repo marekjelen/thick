@@ -6,9 +6,22 @@ require 'bundler/setup'
 require 'rspec/core/rake_task'
 
 require 'thick/version'
+require 'fileutils'
 
 desc 'Default: run tests.'
 task :default => :test
+
+namespace :java do
+
+  desc "Build java part"
+  task :build do
+    Dir.chdir("java")
+    puts `~/bin/maven/bin/mvn package`
+    Dir.chdir("..")
+    FileUtils.copy('java/target/thick-0.0.1.jar', 'lib/jars/thick-0.0.1.jar')
+  end
+
+end
 
 namespace :gem do
 

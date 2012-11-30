@@ -1,7 +1,7 @@
 module Thick
 
-  def self.start(options)
-    @options = {
+  def self.create(options)
+    options = {
         :address => '0.0.0.0',
         :port => 9292,
         :environment => 'development',
@@ -11,19 +11,15 @@ module Thick
         :file => 'config.ru'
     }.merge(options)
 
-    puts "* Starting Thick: #{@options.inspect}"
+    puts "* Starting Thick: #{options.inspect}"
 
-    @options[:application] = Loader.new(@options)
-    @server = Server.new(@options).start
+    env = Thick::Java::ServerEnvironment.new
+    env.address = options[:address]
+    env.port = options[:port]
 
-    if @options[:controller]
-      @controller = Controller.new(@options, @server)
-      @controller.start
-    end
+    env.application = Loader.new(options)
+    Thick::Java::Server.new(env).start
 
-    loop do
-      sleep(100) # ToDo: Is this hack needed?
-    end
   end
 
 end

@@ -15,6 +15,7 @@ GEM
 
 PLATFORMS
   java
+  ruby
 
 DEPENDENCIES
   rack (= 1.4.1)

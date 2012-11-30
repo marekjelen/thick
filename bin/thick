@@ -44,4 +44,4 @@ OptionParser.new do |opts|
 
 end.parse!
 
-Thick.start(options)
+Thick.create(options)
