@@ -23,6 +23,10 @@ public class Server {
 
     }
 
+    public ServerEnvironment getServerEnvironment() {
+        return serverEnvironment;
+    }
+
     public void start() throws InterruptedException {
         serverBootstrap.bind().sync().channel().closeFuture().sync();
     }
