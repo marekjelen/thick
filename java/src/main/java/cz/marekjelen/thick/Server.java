@@ -11,7 +11,7 @@ public class Server {
     private ServerEnvironment serverEnvironment;
     private ServerBootstrap serverBootstrap;
 
-    public Server(ServerEnvironment env){
+    public Server(ServerEnvironment env) {
 
         serverEnvironment = env;
         serverBootstrap = new ServerBootstrap();
@@ -31,7 +31,7 @@ public class Server {
         serverBootstrap.bind().sync().channel().closeFuture().sync();
     }
 
-    public void stop(){
+    public void stop() {
         serverBootstrap.shutdown();
     }
 

@@ -22,9 +22,9 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessa
 
     @Override
     public void messageReceived(ChannelHandlerContext context, HttpMessage message) throws Exception {
-        if(message instanceof HttpRequest){
+        if (message instanceof HttpRequest) {
             onRequest(context, (HttpRequest) message);
-        }else{
+        } else {
             onChunk(context, (HttpChunk) message);
         }
     }
@@ -35,7 +35,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessa
 
         File staticFile = new File("public", request.getUri());
 
-        if(staticFile.isFile()){
+        if (staticFile.isFile()) {
             response.sendFile(staticFile);
             return;
         }
@@ -47,7 +47,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessa
         inputBuffer = Unpooled.buffer();
         inputBuffer.writeBytes(request.getContent());
 
-        env.put("rack.version", new int[] {1,1});
+        env.put("rack.version", new int[]{1, 1});
         env.put("rack.url_scheme", "http"); // ToDo: add support for HTTPs
         env.put("rack.errors", System.err); // ToDo: where to write errors?
         env.put("rack.multithread", true);
@@ -61,16 +61,16 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessa
         env.put("SERVER_NAME", "localhost"); // ToDo: Be more precise!
         env.put("SERVER_PORT", "8080"); // ToDo: Be more precise!
 
-        if(request.getHeaderNames().contains(HttpHeaders.Names.CONTENT_LENGTH)){
+        if (request.getHeaderNames().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
             long content_length = HttpHeaders.getContentLength(request);
-            if(content_length > 0){
+            if (content_length > 0) {
                 env.put("CONTENT_LENGTH", content_length);
             }
         }
 
-        for(String headerName : request.getHeaderNames()){
+        for (String headerName : request.getHeaderNames()) {
             String rackName = headerName.replaceAll("\\-", "_").toUpperCase();
-            if(!rackName.equals("CONTENT_TYPE") && !rackName.equals("CONTENT_LENGTH")){
+            if (!rackName.equals("CONTENT_TYPE") && !rackName.equals("CONTENT_LENGTH")) {
                 rackName = "HTTP_" + rackName;
             }
             env.put(rackName, request.getHeader(headerName));
@@ -78,7 +78,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessa
 
         env.put("thick.response", response);
 
-        if(request.getTransferEncoding().isSingle()){
+        if (request.getTransferEncoding().isSingle()) {
             handleRequest();
         }
 
@@ -86,7 +86,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessa
 
     private void onChunk(ChannelHandlerContext context, HttpChunk chunk) {
         inputBuffer.writeBytes(chunk.getContent());
-        if(chunk.isLast()){
+        if (chunk.isLast()) {
             handleRequest();
         }
     }

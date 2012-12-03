@@ -26,16 +26,16 @@ public class ServerResponse extends DefaultHttpResponse {
         this.buffer = Unpooled.buffer();
     }
 
-    public void setStatus(int status){
+    public void setStatus(int status) {
         this.setStatus(HttpResponseStatus.valueOf(status));
     }
 
-    public void chunked(){
+    public void chunked() {
         this.chunked = true;
         setTransferEncoding(HttpTransferEncoding.CHUNKED);
     }
 
-    public void streamed(){
+    public void streamed() {
         this.chunked = true;
         setTransferEncoding(HttpTransferEncoding.STREAMED);
     }
@@ -44,21 +44,21 @@ public class ServerResponse extends DefaultHttpResponse {
         return chunked;
     }
 
-    public void writeContent(String data){
-        if(this.sent){
+    public void writeContent(String data) {
+        if (this.sent) {
             context.write(new DefaultHttpChunk(Unpooled.wrappedBuffer(data.getBytes())));
             context.flush();
-        }else{
+        } else {
             buffer.writeBytes(data.getBytes());
         }
     }
 
-    public ServerResponse send(){
-        if(!chunked){
+    public ServerResponse send() {
+        if (!chunked) {
             setContent(buffer);
             ChannelFuture future = context.write(this);
             future.addListener(ChannelFutureListener.CLOSE);
-        }else{
+        } else {
             context.write(this);
             context.write(new DefaultHttpChunk(buffer));
             context.flush();
@@ -81,7 +81,7 @@ public class ServerResponse extends DefaultHttpResponse {
 
     public void sendFile(File file, boolean attachment) throws IOException {
         HttpHeaders.setContentLength(this, file.length());
-        if(attachment){
+        if (attachment) {
             this.setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
         }
         setHeader(HttpHeaders.Names.CONTENT_TYPE, URLConnection.getFileNameMap().getContentTypeFor(file.getName()));
@@ -91,7 +91,7 @@ public class ServerResponse extends DefaultHttpResponse {
         context.write(chunkedFile).addListener(ChannelFutureListener.CLOSE);
     }
 
-    public void close(){
+    public void close() {
         context.write(HttpChunk.LAST_CHUNK);
     }
 
