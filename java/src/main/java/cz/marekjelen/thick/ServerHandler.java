@@ -3,33 +3,46 @@ package cz.marekjelen.thick;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundMessageHandlerAdapter;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.stream.ChunkedFile;
+import io.netty.handler.codec.http.websocketx.*;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
-import java.io.RandomAccessFile;
 import java.util.HashMap;
 
-public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessage> {
+public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
 
     private ServerEnvironment serverEnvironment;
     private ByteBuf inputBuffer;
     private HashMap<String, Object> env;
+    private WebSocketServerHandshaker handShaker;
 
     @Override
-    public void messageReceived(ChannelHandlerContext context, HttpMessage message) throws Exception {
+    public void messageReceived(ChannelHandlerContext context, Object message) throws Exception {
         if (message instanceof HttpRequest) {
             onRequest(context, (HttpRequest) message);
-        } else {
+        } else if (message instanceof HttpChunk) {
             onChunk(context, (HttpChunk) message);
+        } else if (message instanceof WebSocketFrame){
+            onWebSocket(context, (WebSocketFrame) message);
         }
     }
 
     private void onRequest(ChannelHandlerContext context, HttpRequest request) throws Exception {
+
+        if(request.containsHeader("Upgrade") && request.getHeader("Upgrade").equals("websocket")){
+            // ToDo: WebSockets path
+            WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory("ws://localhost:9292/websockets", null, false);
+            handShaker = wsFactory.newHandshaker(request);
+            if (handShaker == null) {
+                wsFactory.sendUnsupportedWebSocketVersionResponse(context.channel());
+            } else {
+                handShaker.handshake(context.channel(), request);
+            }
+            // ToDo: notify application about new WebSocket & provide interface for sending data to client
+            return;
+        }
 
         ServerResponse response = new ServerResponse(context);
 
@@ -94,6 +107,19 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<HttpMessa
     private void handleRequest() {
         env.put("rack.input", new ByteBufInputStream(inputBuffer));
         serverEnvironment.getApplication().call(env);
+    }
+
+    private void onWebSocket(ChannelHandlerContext context, WebSocketFrame frame) {
+        if (frame instanceof CloseWebSocketFrame) {
+            handShaker.close(context.channel(), (CloseWebSocketFrame) frame);
+            // ToDo: notify application about closed WebSocket
+            return;
+        }
+        if (frame instanceof PingWebSocketFrame) {
+            context.channel().write(new PongWebSocketFrame(frame.getBinaryData()));
+            return;
+        }
+        // ToDo: provide interface to push WebSocket data to application (text, binary, continuation)
     }
 
     public void setEnvironment(ServerEnvironment env) {
