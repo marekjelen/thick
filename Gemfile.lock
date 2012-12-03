@@ -1,5 +1,5 @@
 PATH
-  remote: ruby
+  remote: .
   specs:
     thick (0.0.6-java)
       rack (= 1.4.1)
