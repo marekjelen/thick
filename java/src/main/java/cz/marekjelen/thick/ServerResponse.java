@@ -5,10 +5,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URLConnection;
@@ -89,9 +91,7 @@ public class ServerResponse extends DefaultHttpResponse {
             setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
         }
         context.write(this);
-        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
-        ChunkedFile chunkedFile = new ChunkedFile(randomAccessFile, 0, file.length(), 8192);
-        context.write(chunkedFile).addListener(ChannelFutureListener.CLOSE);
+        context.channel().sendFile(new DefaultFileRegion(new FileInputStream(file).getChannel(), 0, file.length()));
     }
 
     public void close() {
