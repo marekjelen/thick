@@ -10,12 +10,13 @@ import io.netty.handler.codec.http.websocketx.*;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 
 public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
 
     private ServerEnvironment serverEnvironment;
     private ByteBuf inputBuffer;
-    private HashMap<String, Object> env;
+    private Map<String, Object> env;
     private WebSocketServerHandshaker handShaker;
 
     @Override
@@ -40,7 +41,26 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
             } else {
                 handShaker.handshake(context.channel(), request);
             }
-            // ToDo: notify application about new WebSocket & provide interface for sending data to client
+
+
+            // Websockets will be handled as normal requests, when user connects PUT method will be send
+            // to notify of new connection, when data will come from client, POST method request will be send
+            // and once the connection closes, a request with DELETE method is used.
+            // There has to be a WebSocket environment create to represent each opened socket, that will be
+            // passed down the the application. Application will then have reference to send data back to the
+            // browser.
+
+            // Also this Websocket handling chunk of code has to be integrated with the application to check on
+            // authentication&authorization and other things before accepting the connection.
+
+            env = buildEnvironment();
+
+            env.put("REQUEST_METHOD", "PUT");
+            env.put("PATH_INFO", "/thick/websockets"); // ToDo: path selection
+            env.put("QUERY_STRING", "id=xyz"); // ToDo: id generation?
+
+            serverEnvironment.getApplication().call(env);
+
             return;
         }
 
@@ -53,24 +73,17 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
             return;
         }
 
-        env = new HashMap<String, Object>();
+        env = buildEnvironment();
 
         String[] queryString = request.getUri().split("\\?", 2);
 
         inputBuffer = Unpooled.buffer();
         inputBuffer.writeBytes(request.getContent());
 
-        env.put("rack.version", new int[]{1, 1});
-        env.put("rack.url_scheme", "http"); // ToDo: add support for HTTPs
-        env.put("rack.errors", System.err); // ToDo: where to write errors?
-        env.put("rack.multithread", true);
-        env.put("rack.multiprocess", false);
-        env.put("rack.run_once", false);
-
         env.put("REQUEST_METHOD", request.getMethod().getName());
-        env.put("SCRIPT_NAME", "");
         env.put("PATH_INFO", queryString[0]);
         env.put("QUERY_STRING", queryString.length == 1 ? "" : queryString[1]);
+
         env.put("SERVER_NAME", "localhost"); // ToDo: Be more precise!
         env.put("SERVER_PORT", "8080"); // ToDo: Be more precise!
 
@@ -95,6 +108,21 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
             handleRequest();
         }
 
+    }
+
+    private Map<String, Object> buildEnvironment() {
+        Map<String, Object> env = new HashMap<String, Object>();
+
+        env.put("rack.version", new int[]{1, 1});
+        env.put("rack.url_scheme", "http"); // ToDo: add support for HTTPs
+        env.put("rack.errors", System.err); // ToDo: where to write errors?
+        env.put("rack.multithread", true);
+        env.put("rack.multiprocess", false);
+        env.put("rack.run_once", false);
+
+        env.put("SCRIPT_NAME", "");
+
+        return env;
     }
 
     private void onChunk(ChannelHandlerContext context, HttpChunk chunk) {
