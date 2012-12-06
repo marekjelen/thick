@@ -36,7 +36,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
             WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory("ws://localhost:9292/websockets", null, false);
             handShaker = wsFactory.newHandshaker(request);
             if (handShaker == null) {
-                wsFactory.sendUnsupportedWebSocketVersionResponse(context.channel());
+                WebSocketServerHandshakerFactory.sendUnsupportedWebSocketVersionResponse(context.channel());
             } else {
                 handShaker.handshake(context.channel(), request);
             }
