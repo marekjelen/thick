@@ -84,7 +84,10 @@ public class ServerResponse extends DefaultHttpResponse {
         if (attachment) {
             this.setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
         }
-        setHeader(HttpHeaders.Names.CONTENT_TYPE, URLConnection.getFileNameMap().getContentTypeFor(file.getName()));
+        String contentType = URLConnection.getFileNameMap().getContentTypeFor(file.getName());
+        if(contentType != null){
+            setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
+        }
         context.write(this);
         RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
         ChunkedFile chunkedFile = new ChunkedFile(randomAccessFile, 0, file.length(), 8192);
