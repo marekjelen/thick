@@ -1,7 +1,6 @@
 package cz.marekjelen.thick;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundMessageHandlerAdapter;
@@ -40,7 +39,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
 
             env.put("PATH_INFO", "/thick/websockets"); // ToDo: path selection
             env.put("QUERY_STRING", "id=xyz"); // ToDo: id generation?
-            env.put("rack.input", new ByteBufInputStream(Unpooled.buffer()));
+            env.put("rack.input", inputBuffer);
 
             webSocketEnvironment = new WebSocketEnvironment(context, request);
             env.put("thick.websocket", webSocketEnvironment);
@@ -120,7 +119,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
     }
 
     private void handleRequest() {
-        env.put("rack.input", new ByteBufInputStream(inputBuffer));
+        env.put("rack.input", inputBuffer);
         serverEnvironment.getApplication().call(env);
     }
 

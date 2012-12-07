@@ -12,7 +12,7 @@ module Thick
 
     def call(env)
       # ToDo: Does not work with Netty4 !!
-      env['rack.input'] = env['rack.input'].to_io
+      env['rack.input'] = Buffer.new(env['rack.input'])
       env['rack.errors'] = env['rack.errors'].to_io
 
       status, headers, body = @application.call(env)
