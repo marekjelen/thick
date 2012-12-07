@@ -44,6 +44,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
 
             webSocketEnvironment = new WebSocketEnvironment(context, request);
             env.put("thick.websocket", webSocketEnvironment);
+            env.put("thick.response_bypass", true);
 
             env.put("REQUEST_METHOD", "PUT");
 
@@ -126,9 +127,6 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
     private void onWebSocket(ChannelHandlerContext context, WebSocketFrame frame) {
         if (frame instanceof CloseWebSocketFrame) {
             webSocketEnvironment.closed((CloseWebSocketFrame) frame);
-            env.put("REQUEST_METHOD", "DELETE");
-            env.put("rack.input", new ByteBufInputStream(Unpooled.buffer()));
-            serverEnvironment.getApplication().call(env);
             return;
         }
         if (frame instanceof PingWebSocketFrame) {
@@ -144,9 +142,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
             inputBuffer.writeBytes(frame.getBinaryData());
         }
         if(frame.isFinalFragment()){
-            env.put("REQUEST_METHOD", "POST");
-            env.put("rack.input", new ByteBufInputStream(inputBuffer));
-            serverEnvironment.getApplication().call(env);
+            webSocketEnvironment.getHandler().on_data(new String(inputBuffer.array()));
         }
     }
 

@@ -1,5 +1,23 @@
 require 'sinatra/base'
 
+java_import 'cz.marekjelen.thick.WebSocketHandler'
+
+class WebsocketHandler < WebSocketHandler
+
+  def on_open
+    puts "open"
+  end
+
+  def on_data(data)
+    write(data.upcase)
+  end
+
+  def on_close
+    puts "closed"
+  end
+
+end
+
 class App < Sinatra::Base
 
   get '/' do
@@ -12,9 +30,20 @@ class App < Sinatra::Base
         "<script type=\"text/javascript\">" +
           "var socket; \n" +
           "socket = new WebSocket(\"ws://localhost:9292/websockets\");\n" +
+          "socket.onopen = function(evt ){ socket.send('Hello') };" +
+          "socket.onmessage = function(evt){ console.log(evt.data); socket.close() };" +
         "</script>\n" +
         "</body>\n" +
         "</html>\n"
+  end
+
+  put '/upload' do
+    request.body.read
+  end
+
+  put '/thick/websockets' do
+    env['thick.websocket'].set_handler(WebsocketHandler.new)
+    env['thick.websocket'].hand_shake("ws://localhost:9292/websockets")
   end
 
 end

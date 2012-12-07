@@ -11,10 +11,13 @@ module Thick
     end
 
     def call(env)
+      # ToDo: Does not work with Netty4 !!
       env['rack.input'] = env['rack.input'].to_io
       env['rack.errors'] = env['rack.errors'].to_io
 
       status, headers, body = @application.call(env)
+
+      return if env['thick.response_bypass']
 
       response = env['thick.response']
 
