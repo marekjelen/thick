@@ -1,9 +1,9 @@
 package cz.marekjelen.thick;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public interface ServerRubyInterface {
 
-    public void call(HashMap<String, Object> env);
+    public void call(Map<String, Object> env);
 
 }
