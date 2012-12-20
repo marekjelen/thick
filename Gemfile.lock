@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    thick (0.0.6-java)
+    thick (0.0.7-java)
       rack (= 1.4.1)
 
 GEM
