@@ -1,9 +1,13 @@
-## 0.6 (20.12.2012)
+## 0.7 (20.12.2012)
 
 * update Netty to 4th version
 * support for WebSockets
 * new buffer for uploaded data
 * simpler interface for async responses
+
+## 0.6 (01.12.2012)
+
+* some weird version
 
 ## 0.5 (30.11.2012)
 
