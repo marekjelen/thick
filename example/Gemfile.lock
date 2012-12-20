@@ -1,5 +1,5 @@
 PATH
-  remote: /home/mjelen/Projects/thick
+  remote: /Users/mjelen/Projects/thick
   specs:
     thick (0.0.6-java)
       rack (= 1.4.1)
