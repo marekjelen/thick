@@ -1,6 +1,7 @@
 package cz.marekjelen.thick;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
@@ -27,8 +28,12 @@ public class Server {
         return serverEnvironment;
     }
 
+    public Channel asyncStart() throws InterruptedException {
+        return serverBootstrap.bind().sync().channel();
+    }
+
     public void start() throws InterruptedException {
-        serverBootstrap.bind().sync().channel().closeFuture().sync();
+        asyncStart().closeFuture().sync();
     }
 
     public void stop() {
