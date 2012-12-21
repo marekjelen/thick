@@ -16,6 +16,45 @@ see PERFORMANCE.md
 
 Thick provides interfaces to control it's behaviour.
 
+### WebSockets
+
+Thick allows to handle WebSocket in a simple and (IMHO) not intrusive way.
+
+When a request to WebSocket is received, the server send a PUT request to
+
+    /thick/websockets
+
+and provides two keys in the environment
+
+    env['thick.websocket'].set_handler(Your::Handler)
+    env['thick.websocket'].hand_shake("websocket URL")
+
+Your::Handler should subclass Thick::WebSocket class. It is used to provide interface
+between your application and the connection. The interface for communication from the
+client to your application looks like
+
+  class WebSocket < WebSocketHandler
+
+    def on_open
+      raise NotImplementedError.new("You should implement '#on_open' method.")
+    end
+
+    def on_data(data)
+      raise NotImplementedError.new("You should implement '#on_data(data)' method.")
+    end
+
+    def on_close
+      raise NotImplementedError.new("You should implement '#on_close' method.")
+    end
+
+  end
+
+Two more methods are available to control communicate back to the client
+
+  send("data") # sends data back to client
+  close # closes the connection
+
+
 ### Asynchronous responses
 
 Asynchronous responses provide functionality to stream response to the client by chunks.
