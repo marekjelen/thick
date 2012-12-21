@@ -7,7 +7,7 @@ module Thick
     def initialize(options)
       @options = options
       ENV['RACK_ENV'] ||= ENV['RAILS_ENV'] ||= @options[:environment]
-      @application = Rack::Builder.parse_file(@options[:file])[0]
+      @application = Rack::Builder.parse_file(File.expand_path(@options[:file], @options[:directory]))[0]
     end
 
     def call(env)
