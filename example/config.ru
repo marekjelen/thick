@@ -6,6 +6,10 @@ class App < Sinatra::Base
     'Hi'
   end
 
+  post '/echo' do
+    request.body.read
+  end
+
   get '/websockets' do
     "<html>\n<head><title>Web Socket Test</title></head>\n" +
         "<body>\n" +
