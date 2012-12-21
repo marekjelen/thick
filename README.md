@@ -33,27 +33,29 @@ Your::Handler should subclass Thick::WebSocket class. It is used to provide inte
 between your application and the connection. The interface for communication from the
 client to your application looks like
 
-  class WebSocket < WebSocketHandler
+    class WebSocket < WebSocketHandler
 
-    def on_open
-      raise NotImplementedError.new("You should implement '#on_open' method.")
-    end
+        def on_open
+            raise NotImplementedError.new("You should implement '#on_open' method.")
+        end
 
-    def on_data(data)
-      raise NotImplementedError.new("You should implement '#on_data(data)' method.")
-    end
+        def on_data(data)
+            raise NotImplementedError.new("You should implement '#on_data(data)' method.")
+        end
 
-    def on_close
-      raise NotImplementedError.new("You should implement '#on_close' method.")
-    end
+        def on_close
+          raise NotImplementedError.new("You should implement '#on_close' method.")
+        end
 
-  end
+      end
 
 Two more methods are available to control communicate back to the client
 
   send("data") # sends data back to client
   close # closes the connection
 
+The hand_shake("url") method URL asks the server to finish the hand shake and upgrade
+the connection to WebSocket.
 
 ### Asynchronous responses
 
