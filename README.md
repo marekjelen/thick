@@ -29,7 +29,7 @@ and provides two keys in the environment
     env['thick.websocket'].set_handler(Your::Handler)
     env['thick.websocket'].hand_shake("websocket URL")
 
-Your::Handler should subclass Thick::WebSocket class. It is used to provide interface
+Your::Handler should subclass *Thick::WebSocket* class. It is used to provide interface
 between your application and the connection. The interface for communication from the
 client to your application looks like
 
@@ -51,10 +51,10 @@ client to your application looks like
 
 Two more methods are available to control communicate back to the client
 
-  send("data") # sends data back to client
-  close # closes the connection
+      send("data") # sends data back to client
+      close # closes the connection
 
-The hand_shake("url") method URL asks the server to finish the hand shake and upgrade
+The *hand_shake("url")* method URL asks the server to finish the hand shake and upgrade
 the connection to WebSocket.
 
 ### Asynchronous responses
