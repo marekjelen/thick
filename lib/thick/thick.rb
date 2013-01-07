@@ -1,6 +1,7 @@
 module Thick
 
   def self.create(options)
+
     options = {
         :address => '0.0.0.0',
         :port => 9292,
@@ -16,6 +17,7 @@ module Thick
     env.port = options[:port]
 
     env.application = Loader.new(options)
+
     Thick::Java::Server.new(env).start
 
   end
