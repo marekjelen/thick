@@ -3,6 +3,29 @@ require File.expand_path('../helper', __FILE__)
 
 describe "Thick server" do
 
+  before do
+    options = {
+        :address => '0.0.0.0',
+        :port => 9292,
+        :environment => 'development',
+        :directory => File.expand_path('../../example', __FILE__),
+        :file => 'config.ru'
+    }
+
+    env = Thick::Java::ServerEnvironment.new
+    env.address = options[:address]
+    env.port = options[:port]
+
+    env.application = ::Thick::Loader.new(options)
+
+    @server = Thick::Java::Server.new(env)
+    @server.async_start
+  end
+
+  after do
+    @server.stop
+  end
+
   it 'should respond to simple GET' do
     s = TCPSocket.new('localhost', 9292)
     s.puts(<<REQ)
@@ -23,7 +46,7 @@ REQ
       buffer << tmp
     end
     s.close
-    buffer.should == "HTTP/1.1 200 OK\r\nX-Frame-Options: sameorigin\r\nX-XSS-Protection: 1; mode=block\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 2\r\n\r\nHi"
+    buffer.should == "HTTP/1.1 200 OK\r\nX-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 2\r\n\r\nHi"
   end
 
   it 'should echo POSTed data back' do
@@ -48,7 +71,7 @@ REQ
       buffer << tmp
     end
     s.close
-    buffer.should == "HTTP/1.1 200 OK\r\nX-Frame-Options: sameorigin\r\nX-XSS-Protection: 1; mode=block\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 21\r\n\r\nThis is a sample text"
+    buffer.should == "HTTP/1.1 200 OK\r\nX-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 21\r\n\r\nThis is a sample text"
   end
 
 end
