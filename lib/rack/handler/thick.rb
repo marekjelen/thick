@@ -13,7 +13,11 @@ module Rack
 
         env.application = ::Thick::Loader.new({:application => app, :environment => options[:environment]})
 
-        ::Thick::Java::Server.new(env).start
+        server = ::Thick::Java::Server.new(env)
+
+        Kernel.trap(:INT) { server.stop }
+
+        server.start
 
       end
 
