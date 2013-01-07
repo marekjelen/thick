@@ -7,11 +7,10 @@ module Thick
     def initialize(options)
       @options = options
       ENV['RACK_ENV'] ||= ENV['RAILS_ENV'] ||= @options[:environment]
-      @application = Rack::Builder.parse_file(File.expand_path(@options[:file], @options[:directory]))[0]
+      @application = @options[:application] ||= Rack::Builder.parse_file(File.expand_path(@options[:file], @options[:directory]))[0]
     end
 
     def call(env)
-      # ToDo: Does not work with Netty4 !!
       env['rack.input'] = Buffer.new(env['rack.input'])
       env['rack.errors'] = env['rack.errors'].to_io
 
