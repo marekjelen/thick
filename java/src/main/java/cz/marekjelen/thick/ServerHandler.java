@@ -96,6 +96,12 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
         env.put("rack.multiprocess", false);
         env.put("rack.run_once", false);
 
+        HijackIO hijack = new HijackIO(null);
+
+        env.put("rack.hijack?", true);
+        env.put("rack.hijack", hijack);
+        env.put("rack.hijack_io", hijack);
+
         env.put("SCRIPT_NAME", "");
 
         for (String headerName : request.getHeaderNames()) {

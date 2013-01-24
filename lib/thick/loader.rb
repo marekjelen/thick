@@ -22,6 +22,8 @@ module Thick
 
       response.setStatus(status)
 
+      hijack = headers.delete('rack.hijack')
+
       headers.each_pair do |name, value|
         response.setHeader(name, value)
       end
@@ -31,6 +33,9 @@ module Thick
       else
         body.each { |chunk| response.writeContent(chunk.to_s) }
         response.send
+        # Rack Hijack async response
+        hijack.call(env['rack.hijakck_io']) if hijack
+        # Thick native async response
         env['thick.async'].call(response) if response.chunked?
       end
     rescue => e
