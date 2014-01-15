@@ -6,5 +6,6 @@ module Thick
     java_import 'cz.marekjelen.thick.ServerRubyInterface'
     java_import 'io.netty.buffer.Unpooled'
     java_import 'io.netty.buffer.ByteBufInputStream'
+
   end
 end

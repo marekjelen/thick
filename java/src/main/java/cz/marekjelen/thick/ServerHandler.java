@@ -3,7 +3,7 @@ package cz.marekjelen.thick;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundMessageHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
 
@@ -11,7 +11,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
+public class ServerHandler extends SimpleChannelInboundHandler<HttpMessage> {
 
     private ServerEnvironment serverEnvironment;
     private ByteBuf inputBuffer;
@@ -20,12 +20,12 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
     private ServerResponse response;
 
     @Override
-    public void messageReceived(ChannelHandlerContext context, Object message) throws Exception {
-        if (message instanceof HttpRequest) {
+    public void channelRead0(ChannelHandlerContext context, HttpMessage message) throws Exception {
+        if(message instanceof HttpRequest){
             onRequest(context, (HttpRequest) message);
-        } else if (message instanceof HttpChunk) {
-            onChunk(context, (HttpChunk) message);
-        } else if (message instanceof WebSocketFrame){
+        }else if(message instanceof HttpContent){
+            onChunk(context, (HttpContent) message);
+        }else if (message instanceof WebSocketFrame){
             onWebSocket(context, (WebSocketFrame) message);
         }
     }
@@ -34,7 +34,7 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
 
         response = new ServerResponse(context);
 
-        if(request.containsHeader("Upgrade") && request.getHeader("Upgrade").equals("websocket")){
+        if(request.headers().contains("Upgrade") && request.headers().get("Upgrade").equals("websocket")){
             env = buildEnvironment(request);
 
             env.put("PATH_INFO", "/thick/websockets"); // ToDo: path selection
@@ -61,27 +61,32 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
 
         env = buildEnvironment(request);
 
+        env.put("thick.response", response);
+
         String[] queryString = request.getUri().split("\\?", 2);
 
         inputBuffer = Unpooled.buffer();
-        inputBuffer.writeBytes(request.getContent());
 
-        env.put("REQUEST_METHOD", request.getMethod().getName());
+        env.put("rack.version", new int[] {1,1});
+        env.put("rack.url_scheme", "http"); // ToDo: add support for HTTPs
+        env.put("rack.errors", System.err); // ToDo: where to write errors?
+        env.put("rack.multithread", true);
+        env.put("rack.multiprocess", false);
+        env.put("rack.run_once", false);
+
+        env.put("REQUEST_METHOD", request.getMethod().name());
+        env.put("SCRIPT_NAME", "");
         env.put("PATH_INFO", queryString[0]);
         env.put("QUERY_STRING", queryString.length == 1 ? "" : queryString[1]);
 
         env.put("SERVER_NAME", "localhost"); // ToDo: Be more precise!
         env.put("SERVER_PORT", "8080"); // ToDo: Be more precise!
 
-        if (request.getHeaderNames().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
+        if(request.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)){
             long content_length = HttpHeaders.getContentLength(request);
             if (content_length > 0) {
                 env.put("CONTENT_LENGTH", content_length);
             }
-        }
-
-        if (request.getTransferEncoding().isSingle()) {
-            handleRequest();
         }
 
     }
@@ -104,12 +109,12 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
 
         env.put("SCRIPT_NAME", "");
 
-        for (String headerName : request.getHeaderNames()) {
+        for(String headerName : request.headers().names()){
             String rackName = headerName.replaceAll("\\-", "_").toUpperCase();
             if (!rackName.equals("CONTENT_TYPE") && !rackName.equals("CONTENT_LENGTH")) {
                 rackName = "HTTP_" + rackName;
             }
-            env.put(rackName, request.getHeader(headerName));
+            env.put(rackName, request.headers().get(headerName));
         }
 
         env.put("thick.response", response);
@@ -117,9 +122,9 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
         return env;
     }
 
-    private void onChunk(ChannelHandlerContext context, HttpChunk chunk) {
-        inputBuffer.writeBytes(chunk.getContent());
-        if (chunk.isLast()) {
+    private void onChunk(ChannelHandlerContext context, HttpContent chunk) {
+        inputBuffer.writeBytes(chunk.content());
+        if(chunk instanceof LastHttpContent){
             handleRequest();
         }
     }
@@ -135,16 +140,16 @@ public class ServerHandler extends ChannelInboundMessageHandlerAdapter<Object> {
             return;
         }
         if (frame instanceof PingWebSocketFrame) {
-            context.channel().write(new PongWebSocketFrame(frame.getBinaryData()));
+            context.channel().write(new PongWebSocketFrame(frame.content()));
             return;
         }
         if (frame instanceof ContinuationWebSocketFrame){
-            inputBuffer.writeBytes(frame.getBinaryData());
+            inputBuffer.writeBytes(frame.content());
         }else{
             inputBuffer = Unpooled.buffer();
         }
         if (frame instanceof TextWebSocketFrame || frame instanceof BinaryWebSocketFrame){
-            inputBuffer.writeBytes(frame.getBinaryData());
+            inputBuffer.writeBytes(frame.content());
         }
         if(frame.isFinalFragment()){
             webSocketEnvironment.getHandler().on_data(new String(inputBuffer.array()));

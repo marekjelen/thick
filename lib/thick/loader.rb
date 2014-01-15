@@ -11,10 +11,11 @@ module Thick
     end
 
     def call(env)
+      #noinspection RubyArgCount
       env['rack.input'] = Buffer.new(env['rack.input'])
       env['rack.errors'] = env['rack.errors'].to_io
 
-      status, headers, body = @application.call(env)
+      status, headers, body = @application.call({})
 
       return if env['thick.response_bypass']
 
@@ -41,6 +42,11 @@ module Thick
     rescue => e
       puts e.message
       puts e.backtrace
+    end
+
+    def convert(map, hsh = {})
+      map.each { |key, value| hsh[key] = value }
+      hsh
     end
 
   end

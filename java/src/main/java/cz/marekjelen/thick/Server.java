@@ -2,25 +2,32 @@ package cz.marekjelen.thick;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.socket.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
 
 public class Server {
 
+    private final NioEventLoopGroup boss;
+    private final NioEventLoopGroup worker;
     private ServerEnvironment serverEnvironment;
     private ServerBootstrap serverBootstrap;
+    private Channel channel;
+
 
     public Server(ServerEnvironment env) {
 
-        serverEnvironment = env;
-        serverBootstrap = new ServerBootstrap();
+        this.serverEnvironment = env;
+        this.serverBootstrap = new ServerBootstrap();
 
-        serverBootstrap.group(new NioEventLoopGroup(), new NioEventLoopGroup())
+        this.boss = new NioEventLoopGroup();
+        this.worker = new NioEventLoopGroup();
+
+        this.serverBootstrap.group(this.boss, this.worker)
                 .channel(NioServerSocketChannel.class)
-                .localAddress(new InetSocketAddress(serverEnvironment.getAddress(), serverEnvironment.getPort()))
-                .childHandler(new ServerInitializer(serverEnvironment));
+                .localAddress(new InetSocketAddress(this.serverEnvironment.getAddress(), this.serverEnvironment.getPort()))
+                .childHandler(new ServerInitializer(this.serverEnvironment));
 
     }
 
@@ -36,8 +43,10 @@ public class Server {
         asyncStart().closeFuture().sync();
     }
 
-    public void stop() {
-        serverBootstrap.shutdown();
+    public void stop(){
+        this.channel.close().awaitUninterruptibly();
+        this.boss.shutdownGracefully();
+        this.worker.shutdownGracefully();
     }
 
 }

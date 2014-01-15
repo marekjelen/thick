@@ -1,6 +1,7 @@
 package cz.marekjelen.thick;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
@@ -28,7 +29,7 @@ public class WebSocketEnvironment {
         if (handShaker == null) {
             WebSocketServerHandshakerFactory.sendUnsupportedWebSocketVersionResponse(context.channel());
         } else {
-            handShaker.handshake(context.channel(), request);
+            handShaker.handshake(context.channel(), (FullHttpRequest) request);
             this.handler.on_open();
         }
     }

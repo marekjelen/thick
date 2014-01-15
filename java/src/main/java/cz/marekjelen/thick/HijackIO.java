@@ -46,11 +46,7 @@ public class HijackIO {
     }
 
     public void flush(){
-        try {
-            this.context.flush().sync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        this.context.flush();
     }
 
     public void close(){
