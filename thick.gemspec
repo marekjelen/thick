@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.executables  = ['thick']
   s.require_path = 'lib'
 
-  s.add_dependency 'rack', '1.4.1'
+  s.add_dependency 'rack', '1.5.2'
 
   s.add_development_dependency 'rspec', '>= 2'
   s.add_development_dependency 'rake', '>= 10'
