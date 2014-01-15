@@ -1,11 +1,12 @@
 package cz.marekjelen.thick;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,14 +16,12 @@ import java.net.URLConnection;
 public class ServerResponse extends DefaultHttpResponse {
 
     private ChannelHandlerContext context;
-    private ByteBuf buffer;
     private boolean chunked = false;
-    private boolean sent = false;
+    private Logger logger = LoggerFactory.getLogger("Response " + this.hashCode());
 
     public ServerResponse(ChannelHandlerContext context) {
         super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         this.context = context;
-        this.buffer = Unpooled.buffer();
     }
 
     public void setStatus(int status) {
@@ -42,18 +41,8 @@ public class ServerResponse extends DefaultHttpResponse {
         return chunked;
     }
 
-    public ServerResponse send(){
+    public void send(){
         context.write(this);
-
-        if(!chunked){
-            context.write(new DefaultLastHttpContent(buffer)).addListener(ChannelFutureListener.CLOSE);
-        }else{
-            context.write(new DefaultHttpContent(buffer));
-            context.flush();
-        }
-
-        this.sent = true;
-        return this;
     }
 
     public void sendFile(String path) throws IOException {
@@ -79,16 +68,13 @@ public class ServerResponse extends DefaultHttpResponse {
     }
 
     public void writeContent(String data){
-        if(this.sent){
-            context.write(new DefaultHttpContent(Unpooled.wrappedBuffer(data.getBytes())));
-            context.flush();
-        }else{
-            buffer.writeBytes(data.getBytes());
-        }
+        context.write(new DefaultHttpContent(Unpooled.wrappedBuffer(data.getBytes())));
+        context.flush();
     }
 
     public void close(){
-        context.write(new DefaultLastHttpContent());
+        context.write(new DefaultLastHttpContent()).addListener(ChannelFutureListener.CLOSE);
+        context.flush();
     }
 
 }

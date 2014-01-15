@@ -1,5 +1,19 @@
 require 'sinatra/base'
 
+class Socket < Thick::WebSocket
+  def on_open
+    puts "Opened"
+  end
+
+  def on_data(data)
+    puts data.inspect
+  end
+
+  def on_close
+    puts "Closed"
+  end
+end
+
 class App < Sinatra::Base
 
   get '/' do
@@ -28,7 +42,7 @@ class App < Sinatra::Base
   end
 
   put '/thick/websockets' do
-    env['thick.websocket'].set_handler(Thick::WebSocket.new)
+    env['thick.websocket'].set_handler(Socket.new)
     env['thick.websocket'].hand_shake("ws://localhost:9292/websockets")
   end
 

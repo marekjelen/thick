@@ -10,8 +10,6 @@ module Thick
         :file => 'config.ru'
     }.merge(options)
 
-    puts "* Starting Thick: #{options.inspect}"
-
     env = Thick::Java::ServerEnvironment.new
     env.address = options[:address]
     env.port = options[:port]

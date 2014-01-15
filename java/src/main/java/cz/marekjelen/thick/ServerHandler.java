@@ -6,21 +6,38 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ServerHandler extends SimpleChannelInboundHandler<HttpMessage> {
+public class ServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private ServerEnvironment serverEnvironment;
     private ByteBuf inputBuffer;
     private Map<String, Object> env;
     private WebSocketEnvironment webSocketEnvironment;
     private ServerResponse response;
+    private Logger logger = LoggerFactory.getLogger(ServerHandler.class);
 
     @Override
-    public void channelRead0(ChannelHandlerContext context, HttpMessage message) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        this.logger.debug("New connection");
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
+        this.logger.debug("Closed connection");
+    }
+
+    @Override
+    public void channelRead0(ChannelHandlerContext context, Object message) throws Exception {
+        this.logger.info(message.getClass().getName());
         if(message instanceof HttpRequest){
             onRequest(context, (HttpRequest) message);
         }else if(message instanceof HttpContent){
@@ -33,15 +50,20 @@ public class ServerHandler extends SimpleChannelInboundHandler<HttpMessage> {
     private void onRequest(ChannelHandlerContext context, HttpRequest request) throws Exception {
 
         response = new ServerResponse(context);
+        inputBuffer = Unpooled.buffer();
 
         if(request.headers().contains("Upgrade") && request.headers().get("Upgrade").equals("websocket")){
+            this.logger.info("Upgrading");
             env = buildEnvironment(request);
 
             env.put("PATH_INFO", "/thick/websockets"); // ToDo: path selection
             env.put("QUERY_STRING", "id=xyz"); // ToDo: id generation?
             env.put("rack.input", inputBuffer);
 
-            webSocketEnvironment = new WebSocketEnvironment(context, request);
+            DefaultFullHttpRequest req = new DefaultFullHttpRequest(request.getProtocolVersion(), request.getMethod(), request.getUri());
+            req.headers().set(request.headers());
+
+            webSocketEnvironment = new WebSocketEnvironment(context, req);
             env.put("thick.websocket", webSocketEnvironment);
             env.put("thick.response_bypass", true);
 
@@ -65,8 +87,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<HttpMessage> {
 
         String[] queryString = request.getUri().split("\\?", 2);
 
-        inputBuffer = Unpooled.buffer();
-
         env.put("rack.version", new int[] {1,1});
         env.put("rack.url_scheme", "http"); // ToDo: add support for HTTPs
         env.put("rack.errors", System.err); // ToDo: where to write errors?
@@ -88,6 +108,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<HttpMessage> {
                 env.put("CONTENT_LENGTH", content_length);
             }
         }
+
+        this.logger.debug("Request processed, waiting for request body");
 
     }
 
@@ -123,36 +145,47 @@ public class ServerHandler extends SimpleChannelInboundHandler<HttpMessage> {
     }
 
     private void onChunk(ChannelHandlerContext context, HttpContent chunk) {
+        this.logger.debug("Request body chunk processed");
         inputBuffer.writeBytes(chunk.content());
         if(chunk instanceof LastHttpContent){
-            handleRequest();
+            if(this.webSocketEnvironment == null) handleRequest();
         }
     }
 
     private void handleRequest() {
+        this.logger.debug("Request finished, call Ruby application");
         env.put("rack.input", inputBuffer);
         serverEnvironment.getApplication().call(env);
     }
 
     private void onWebSocket(ChannelHandlerContext context, WebSocketFrame frame) {
         if (frame instanceof CloseWebSocketFrame) {
+            frame.retain();
             webSocketEnvironment.closed((CloseWebSocketFrame) frame);
             return;
         }
+
         if (frame instanceof PingWebSocketFrame) {
             context.channel().write(new PongWebSocketFrame(frame.content()));
             return;
         }
+
         if (frame instanceof ContinuationWebSocketFrame){
             inputBuffer.writeBytes(frame.content());
         }else{
             inputBuffer = Unpooled.buffer();
         }
-        if (frame instanceof TextWebSocketFrame || frame instanceof BinaryWebSocketFrame){
+
+        if (frame instanceof TextWebSocketFrame){
             inputBuffer.writeBytes(frame.content());
         }
+
+        if(frame instanceof BinaryWebSocketFrame){
+            inputBuffer.writeBytes(frame.content());
+        }
+
         if(frame.isFinalFragment()){
-            webSocketEnvironment.getHandler().on_data(new String(inputBuffer.array()));
+            webSocketEnvironment.getHandler().on_data(inputBuffer.toString(Charset.defaultCharset()));
         }
     }
 

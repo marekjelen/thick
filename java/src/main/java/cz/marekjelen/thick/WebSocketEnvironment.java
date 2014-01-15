@@ -15,7 +15,7 @@ public class WebSocketEnvironment {
     private Map<Object, Object> attributes = new HashMap<Object, Object>();
     private ChannelHandlerContext context;
     private WebSocketServerHandshaker handShaker;
-    private final HttpRequest request;
+    private HttpRequest request;
     private WebSocketHandler handler;
 
     public WebSocketEnvironment(ChannelHandlerContext context, HttpRequest request) {

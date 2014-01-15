@@ -15,7 +15,7 @@ module Thick
       env['rack.input'] = Buffer.new(env['rack.input'])
       env['rack.errors'] = env['rack.errors'].to_io
 
-      status, headers, body = @application.call({})
+      status, headers, body = @application.call(env)
 
       return if env['thick.response_bypass']
 
@@ -26,18 +26,23 @@ module Thick
       hijack = headers.delete('rack.hijack')
 
       headers.each_pair do |name, value|
-        response.setHeader(name, value)
+        response.headers.set(name, value)
       end
 
       if body.respond_to?(:to_path)
         response.send_file(body.to_path)
       else
-        body.each { |chunk| response.writeContent(chunk.to_s) }
         response.send
-        # Rack Hijack async response
-        hijack.call(env['rack.hijakck_io']) if hijack
-        # Thick native async response
-        env['thick.async'].call(response) if response.chunked?
+        body.each { |chunk| response.writeContent(chunk.to_s) }
+        if hijack
+          # Rack Hijack async response
+          hijack.call(env['rack.hijakck_io'])
+        elsif response.chunked?
+          # Thick native async response
+          env['thick.async'].call(response)
+        else
+          response.close
+        end
       end
     rescue => e
       puts e.message
