@@ -1,6 +1,6 @@
 *.iml
 .idea
-
+.DS_STORE
 *.gem
 .rvmrc
 java/target
