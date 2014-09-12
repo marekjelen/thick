@@ -1,6 +1,6 @@
 require 'sinatra/base'
 
-class Socket < Thick::WebSocket
+class Socket # < Thick::WebSocket
   def on_open
     puts "Opened"
   end
