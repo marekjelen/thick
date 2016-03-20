@@ -1,5 +1,7 @@
 # Thick
 
+**The project has been merged with [WildWeb](https://github.com/marekjelen/wildweb) and lives there.**
+
 Thick is very lightweight web server for JRuby based on excellent Netty library.
 
 [![Build Status](https://secure.travis-ci.org/marekjelen/thick.png?branch=master)](http://travis-ci.org/marekjelen/thick)
