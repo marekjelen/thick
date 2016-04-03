@@ -46,7 +46,7 @@ REQ
       buffer << tmp
     end
     s.close
-    buffer.should == "HTTP/1.1 200 OK\r\nX-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 2\r\n\r\nHi"
+    buffer.should == "HTTP/1.1 200 OK\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 2\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: SAMEORIGIN\r\n\r\nHi"
   end
 
   it 'should echo POSTed data back' do
@@ -71,7 +71,7 @@ REQ
       buffer << tmp
     end
     s.close
-    buffer.should == "HTTP/1.1 200 OK\r\nX-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 21\r\n\r\nThis is a sample text"
+    buffer.should == "HTTP/1.1 200 OK\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 21\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: SAMEORIGIN\r\n\r\nThis is a sample text"
   end
 
 end
